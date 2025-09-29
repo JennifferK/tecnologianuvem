@@ -1,31 +1,14 @@
-# Usa a imagem oficial do PHP com Apache
-FROM php:8.2-apache
+# Usa a imagem oficial do PHP com servidor embutido
+FROM php:8.2-cli
 
-# Porta usada pela Render
-ENV PORT=8080
+# Define o diretório de trabalho dentro do container
+WORKDIR /app
 
-# Ativa o mod_rewrite para URLs amigáveis
-RUN a2enmod rewrite
+# Copia todos os arquivos do projeto para o container
+COPY . /app
 
-# Copia o código da aplicação
-COPY . /var/www/html/
+# Expõe a porta 10000, que o Render usa por padrão
+EXPOSE 10000
 
-# Corrige permissões
-RUN chown -R www-data /var/www/html && chmod -R 755 /var/www/html
-
-# Corrige configurações da porta
-RUN sed -i "s/Listen 80/Listen ${PORT}/" /etc/apache2/ports.conf && \
-    sed -i "s/<VirtualHost \*:80>/<VirtualHost \*:${PORT}>/" /etc/apache2/sites-available/000-default.conf
-
-#Permite aacesso ao diretório
-Run echo '<Directory /var/www/html>' >> /etc/apache2/apache2.conf && \
-    echo '    Options Indexes FollowSymLinks' >> /etc/apache2/apache2.conf && \
-    echo '    AllowOverride All' >> /etc/apache2/apache2.conf && \
-    echo '    Require all granted' >> /etc/apache2/apache2.conf && \
-    echo '</Directory>' >> /etc/apache2/apache2.conf 
-
-#Expõe a porta corretamente
-EXPOSE ${PORT}
-
-#inicia o Apache
-CMD ["apache2-foreground"]
+# Comando que inicia o servidor PHP embutido na porta 10000
+CMD ["php", "-S", "0.0.0.0:10000"]
